@@ -108,7 +108,7 @@ body {
 .reply {
     padding: 0.5em 1em 0.5em 1em;
     font-size: 16px;
-    word-break: break-word
+    word-break: break-word;
 }
 
 .reply:nth-child(odd) {
@@ -119,15 +119,25 @@ body {
     background-color: #eee8aa;
 }
 
+.photo-uploader label,
 button {
     background-color: rgba(147, 128, 108, 0.1);
     color: #666;
     font: inherit;
     font-weight: 400;
     border: 1px solid rgba(147, 128, 108, 0.25);
-    padding: .5em .75em
+    padding: .5em .75em;
+    display: inline-block;
 }
 
 button:hover {
     cursor: pointer
+}
+
+#photo-input {
+    display: none;
+}
+
+.photo-uploader {
+    text-align: center;
 }

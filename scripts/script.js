@@ -2,6 +2,33 @@ const button = document.querySelector('button');
 const input = document.querySelector('input');
 const replies = document.querySelector('.replies');
 
+const photoInput= document.getElementById('photo-input');
+
+photoInput.addEventListener('change', (e) => {
+    let file = e.target.files[0];
+    let types = ['image/jpeg', 'image/gif', 'image/png']
+
+    if (!file || !types.includes(file.type)) {
+        e.target.value =null;
+        // return
+        throw new TypeError('Wrong type of file');
+    }
+    uploadPhoto(file);
+});
+
+function uploadPhoto(photo) {
+    let container = {
+        url: '/photos',
+        resolve:  onSucces,
+        reject: onError,
+        data: photo
+    };
+    function onSucces(response) {
+        console.log(response);
+    }
+    post(container)
+}
+
 button.addEventListener('click', addReply);
 input.addEventListener('keydown', (e) => {
     if (e.which == 13) {
@@ -68,12 +95,32 @@ function drawFriends(friendList) {
     });
 }
 
-function get(url, callback) {
+
+
+
+function post(params) {
+    let xhr = new XMLHttpRequest();
+
+    let formData = new FormData();
+    formData.append('file', params.data);
+
+    xhr.onreadystatechange = function() {
+        if (xhr.status == 200 && xhr.readyState == 4) {
+            params.resolve(JSON.parse(xhr.responseText));
+        }
+    }
+
+    xhr.para
+    xhr.open('POST', params.url, true);
+    xhr.send(formData);
+}
+
+function get(url, resolve, reject) {
     const xhr = new XMLHttpRequest();
 
     xhr.onreadystatechange = () => {
         if (xhr.readyState == 4 && xhr.status == 200) {
-            callback(JSON.parse(xhr.responseText));
+            resolve(JSON.parse(xhr.responseText));
         }
     };
 
