@@ -1,143 +1,133 @@
+let response;
+let xhr = new XMLHttpRequest();
+const gallery = document.getElementById("gallery");
+const prof = document.getElementById("profile");
+const bio = document.getElementById("bio");
+const friends = document.getElementById("friends");
+const replies = document.querySelector('.replies');
 const button = document.querySelector('button');
 const input = document.querySelector('input');
-const replies = document.querySelector('.replies');
-
-const photoInput= document.getElementById('photo-input');
-
-photoInput.addEventListener('change', (e) => {
-    let file = e.target.files[0];
-    let types = ['image/jpeg', 'image/gif', 'image/png']
-
-    if (!file || !types.includes(file.type)) {
-        e.target.value =null;
-        // return
-        throw new TypeError('Wrong type of file');
-    }
-    uploadPhoto(file);
-});
-
-function uploadPhoto(photo) {
-    let container = {
-        url: '/photos',
-        resolve:  onSucces,
-        reject: onError,
-        data: photo
-    };
-    function onSucces(response) {
-        console.log(response);
-    }
-    post(container)
-}
 
 button.addEventListener('click', addReply);
 input.addEventListener('keydown', (e) => {
-    if (e.which == 13) {
-        addReply();
-    }
+    if (e == 13) addReply()
 });
 
-function onError(e) {
-    throw new Error(e.message)
-}
-
-function addReply() {
-    const text = input.value.trim();
-
-    if (!text.length) {
-        return;
-    }
-    const reply = document.createElement('div');
+function addReply(){
+    console.log('a!');
+    let text = input.value.trim();
+    let reply = document.createElement('div');
     reply.classList.add('reply');
     reply.innerHTML = `<p>${text}</p>`;
     replies.appendChild(reply);
-    input.value = null;
+    input.value=null;
 }
 
-function drawPhotos(photos) {
-    const gallery = document.getElementById('gallery');
-
-    photos.forEach(drawPhoto);
-
-    function drawPhoto(photo) {
-        const container = document.createElement('div');
-        const img = document.createElement('img');
-
-        container.classList.add('photo');
-        img.src = photo.url;
-
-        container.appendChild(img);
-        gallery.appendChild(container);
-    }
-}
-
-function drawProfile(profile) {
-    const avatar = document.querySelector('.avatar');
-    const name = document.querySelector('.name');
-    const phone = document.querySelector('.phone');
-    const email = document.querySelector('.email');
-
-    avatar.src = profile.picture.large;
-    name.textContent = `${profile.name.first} ${profile.name.last}`;
-    phone.textContent = profile.cell;
-    email.textContent = profile.email;
-}
-
-function drawFriends(friendList) {
-    const friends = document.getElementById('friends');
-
-    friendList.forEach((friend) => {
-        const container = document.createElement('div');
-        const img = document.createElement('img');
-        container.classList.add('friend');
-        img.src = friend.picture.large;
-        container.appendChild(img);
-        friends.appendChild(container);
-    });
-}
-
-
-
-
-function post(params) {
+function get (url,callback){
     let xhr = new XMLHttpRequest();
-
-    let formData = new FormData();
-    formData.append('file', params.data);
-
-    xhr.onreadystatechange = function() {
-        if (xhr.status == 200 && xhr.readyState == 4) {
-            params.resolve(JSON.parse(xhr.responseText));
+    xhr.onreadystatechange = (e) => {
+        if(xhr.status == 200 && xhr.readyState == 4){
+            callback(JSON.parse(xhr.responseText));
         }
     }
-
-    xhr.para
-    xhr.open('POST', params.url, true);
-    xhr.send(formData);
-}
-
-function get(url, resolve, reject) {
-    const xhr = new XMLHttpRequest();
-
-    xhr.onreadystatechange = () => {
-        if (xhr.readyState == 4 && xhr.status == 200) {
-            resolve(JSON.parse(xhr.responseText));
-        }
-    };
-
-    xhr.onerror = function(e) {
-        onError(e)
-    }
-
     xhr.open('GET', url, true);
-    xhr.send(null);
+    xhr.send();
 }
 
-get('/photos', (response) => {
-    drawPhotos(response.photos);
-    get('https://randomuser.me/api/', (response) => {
-        drawProfile(response.results[0]);
-        get('https://randomuser.me/api/?results=15', (response) => {
-            drawFriends(response.results);
-        }, onError);
-    }, onError);
-}, onError);
+get('/data', drawPhotos);
+get('https://randomuser.me/api', getProfile);
+get('https://randomuser.me/api/?results=15', getFriends);
+
+//присваиваем свойство объекту, в который будем получать результат запроса
+//xhr.onreadystatechange = function (e) {
+
+function drawPhotos(photos){
+    //let photos = JSON.parse(xhr.responseText);
+    photos.forEach(drawPhoto);
+    function drawPhoto(item){
+        let photo = document.createElement('div');
+        img = document.createElement('img');
+        photo.classList.add('photo'); //если другой класс уже есть - добавит
+        // если такой же класс есть - второй раз добавлять не будет
+        //photo.className = 'photo'; //если класс был, то он перепишется
+        //console.log(item);
+        img.src = item.url;
+        photo.appendChild(img);
+        gallery.appendChild(photo);
+    }
+}
+
+function getProfile(profile){
+    profile = profile.results[0]
+    let email = document.getElementsByClassName('email')[0];
+    let phone = document.getElementsByClassName('phone')[0];
+    let name = document.getElementsByClassName('name')[0];
+    let avatar = document.getElementsByClassName('avatar')[0];
+    email.innerHTML = profile.email;
+    phone.innerHTML = profile.phone;
+    name.innerHTML = profile.name.first[0].toUpperCase() + profile.name.first.substring(1)
+        +' '+profile.name.last[0].toUpperCase() + profile.name.last.substring(1);
+    avatar.src = profile.picture.large;
+    phone.innerText = profile.phone;
+}
+
+function getFriends(list){
+    list = list.results;
+    for(let i=0;i<list.length;i++){
+        let friend = document.createElement('div');
+        let photo  = document.createElement('img');
+        friend.classList.add('friend');
+        photo.src = list[i].picture.thumbnail;
+        //console.log(list[i].picture.thumbnail);
+        friend.appendChild(photo);
+        friends.appendChild(friend);
+    }
+}
+
+//backlog
+
+//xhr.open('GET', '/hello', true); // запрос асинхронный
+//xhr.send(null);
+
+//xhr.open('GET', '/data', true); // запрос асинхронный
+//xhr.send();
+
+//const xhr2 = new XMLHttpRequest();
+//xhr2.onreadystatechange = (e) => {
+//    if(xhr2.status == 200 & xhr2.readyState == 4){
+//        let profile = JSON.parse(xhr2.responseText).results[0]
+//        let email = document.getElementsByClassName('email')[0];
+//        let phone = document.getElementsByClassName('phone')[0];
+//        let name = document.getElementsByClassName('name')[0];
+//        let avatar = document.getElementsByClassName('avatar')[0];
+//        email.innerHTML = profile.email;
+//        phone.innerHTML = profile.phone;
+//        name.innerHTML = profile.name.first[0].toUpperCase() + profile.name.first.substring(1)
+//            +' '+profile.name.last[0].toUpperCase() + profile.name.last.substring(1);
+//        avatar.src = profile.picture.large;
+//        phone.innerText = profile.phone;
+//   }
+//}
+//xhr2.open('GET', 'https://randomuser.me/api', true);
+//xhr2.send();
+
+
+
+//const xhr3 = new XMLHttpRequest();
+//xhr3.onreadystatechange = (e) => {
+//    if(xhr3.status == 200 && xhr3.readyState == 4) {
+//        let list = JSON.parse(xhr3.responseText).results;
+//        for(let i=0;i<list.length;i++){
+//            let friend = document.createElement('div');
+//            let photo  = document.createElement('img');
+//            friend.classList.add('friend');
+//            photo.src = list[i].picture.thumbnail;
+//            //console.log(list[i].picture.thumbnail);
+//            friend.appendChild(photo);
+//            friends.appendChild(friend);
+//        }
+//
+//    }
+//}
+//xhr3.open('GET', 'https://randomuser.me/api/?results=18', true);
+//xhr3.send();

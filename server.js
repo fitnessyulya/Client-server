@@ -1,51 +1,50 @@
-'use strict';
+'use strict'
 
+//const http = require('http');
+//const staticServer = require('node-static'); //статику раздает теперь express
+//const file = new staticServer.Server('.');
 const express = require('express');
-
-const path = require('path');
-const fs = require('fs')
-const formidable = require('formidable')
-
-const data = require('./data.js');
-
-const port = 3000;
 const app = express();
 
+const data = require('./data.js'); //подключили ресурс фотки
+
 app.use(express.static(__dirname));
+app.listen(3000);
 
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
+app.get('/', (req,res) =>{
+    res.sendFile(__dirname + '/index.html')
 });
 
-app.get('/photos', (req, res) => {
-    res.set({
-        'Content-Type': 'application/json',
-        'Cache-Control':'no-cache'
-    });
-    res.send( JSON.stringify(data));
+app.get('/data', (req,res) =>{
+    res.send(JSON.stringify(data.photos))
 });
 
-app.post('/photos', (request, response) => {
-    let form = new formidable.IncomingForm()
+//http.createServer(function(req, res) {
+//  if (req.url == '/hello'){
+//    res.writeHead(200, {
+//      'Content-Type':'text/plain',
+//      'Content-Control':'no-cache'
+//    });
+//    res.end('Hi!');
+//  }else{
+//    file.serve(req, res);
+//  }
+//
+//  //фотки
+//
+//  if (req.url == '/data'){
+//    res.writeHead(200, {
+//      'Content-Type':'text/plain',
+//      'Content-Control':'no-cache'
+//    });
+//    //res.end('Hi!');
+//    res.end(JSON.stringify(data.photos));
+//  }else{
+//    file.serve(req, res);
+//  }
+//  //file.serve(req, res);
+//}).listen(3000);
 
-    let name = ''
 
-    form.uploadDir = path.join(__dirname, '/uploads')
 
-    form.on('file', (field, file) => {
-        name = file.name
-    fs.rename(file.path, path.join(form.uploadDir, name))
-})
-
-    form.on('end', () => {
-        let container  = {
-            id: Date.now() * Math.random(),
-            url: `/uploads/${name}`
-        }
-        response.send(JSON.stringify(container))
-    });
-    form.parse(request)
-});
-
-app.listen(port);
-console.log(`Server running on port ${port}`);
+console.log('Server running on port 3000');
